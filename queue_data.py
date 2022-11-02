@@ -70,11 +70,24 @@ def handle_data(form_id, user_id, response_data):
 
 class QueueData(Resource):
     def post(self, form_id):
-        # THREAD -  Best to open a thread somewhere here
+
+
+        response_data = request.get_json()
+        
+        # plugging in USE CASE 2
+        if (float(response_data['monthly_savings']) > float(response_data['monthly_income'])):
+            return {
+                'message': 'Invalid Response. Monthly Savings cannot be greater than Monthly Income'
+            }
+
 
         token = request.headers.get('Authorization')
         user_id = jwt.decode(token, 'secret', algorithms="HS256")['id']
-        response_data = request.get_json()
+
+
+
+        
+        
 
         thread = Thread(target=handle_data, args=[form_id, user_id, response_data])
         
