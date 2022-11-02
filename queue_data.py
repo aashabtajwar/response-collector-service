@@ -4,6 +4,7 @@ from flask_restful import Resource
 from mysql import connector
 import jwt
 import pika
+import json
 
 db = connector.connect(
     host = "localhost",
@@ -43,6 +44,21 @@ class QueueData(Resource):
             db.commit()
         
         data = [data]
+
+        queue_data = {
+            'data': data,
+            'link': form_link,
+            'sheet_name': sheet_name,
+            'form_id': form_id
+        }
+
+        connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+        channel = connection.channel()
+
+        channel.queue_declare(queue='atlan_task')
+        channel.basic_publish(exchange='', routing_key='atlan_task', body=json.dumps(queue_data))
+        connection.close()
+
         return {
             'message': data
         }
