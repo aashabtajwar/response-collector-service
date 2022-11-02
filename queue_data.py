@@ -70,81 +70,24 @@ def handle_data(form_id, user_id, response_data):
 
 class QueueData(Resource):
     def post(self, form_id):
-
-
         response_data = request.get_json()
         
-        # plugging in USE CASE 2
+        # USE CASE 2
         if (float(response_data['monthly_savings']) > float(response_data['monthly_income'])):
             return {
                 'message': 'Invalid Response. Monthly Savings cannot be greater than Monthly Income'
-            }
+            }, 400
 
 
         token = request.headers.get('Authorization')
         user_id = jwt.decode(token, 'secret', algorithms="HS256")['id']
 
-
-
-        
-        
-
+        # handle the rest on a different thread
         thread = Thread(target=handle_data, args=[form_id, user_id, response_data])
         
         thread.start()
 
-        # start thead
-        # get the form link and the sheet name 
-        # query = f'''SELECT link, sheet_name FROM forms WHERE id={form_id}'''
-        # cursor.execute(query)
-        # form_link, sheet_name = cursor.fetchone()
-
-        # # get the questions for this form 
-        # query = f'''SELECT field_name, id FROM questions WHERE form_id={form_id}'''
-        # cursor.execute(query)
-        # field_names = cursor.fetchall()
-
-        # response_data = request.get_json()
-
-        # # LOG -> response data collected
-
-
-        # # creating empty list 'data'
-        # # will be used to upload data to sheets in a specific format
-        # data = []
-
-        # # write down all the response data into DB
-        # for field_name, question_id in field_names:
-        #     data.append(response_data[field_name])
-        #     query = f'''INSERT INTO responses (text, question_id, user_id) VALUES ('{response_data[field_name]}', {question_id}, {user_id})'''
-        #     print(query)
-        #     cursor.execute(query)
-        #     db.commit()
-
-        # # LOG -> inserted into db
-
-        # data = [data]
-
-        # queue_data = {
-        #     'data': data,
-        #     'link': form_link,
-        #     'sheet_name': sheet_name,
-        #     'form_id': form_id
-        # }
-
-        # connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
-        # channel = connection.channel()
-
-        # channel.queue_declare(queue='atlan_task')
-        # channel.basic_publish(exchange='', routing_key='atlan_task', body=json.dumps(queue_data))
-        # connection.close()
-
-
-        # LOG -> queued data
         return {
             'message': 'Response Taken. Thank You!'
-        }
-
-        # queue data to rabbitmq
-
+        }, 201
 
