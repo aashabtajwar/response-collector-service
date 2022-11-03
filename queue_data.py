@@ -17,7 +17,7 @@ db = connector.connect(
 )
 cursor = db.cursor()
 
-def handle_data(form_id, user_id, response_data):
+def handle_data(form_id, responder_id, response_data):
     # start thead
     # get the form link and the sheet name 
     query = f'''SELECT link, sheet_name FROM forms WHERE id={form_id}'''
@@ -40,7 +40,7 @@ def handle_data(form_id, user_id, response_data):
     # write down all the response data into DB
     for field_name, question_id in field_names:
         data.append(response_data[field_name])
-        query = f'''INSERT INTO responses (text, question_id, user_id) VALUES ('{response_data[field_name]}', {question_id}, {user_id})'''
+        query = f'''INSERT INTO responses (text, question_id, responder_id) VALUES ('{response_data[field_name]}', {question_id}, {responder_id})'''
         print(query)
         cursor.execute(query)
         db.commit()
@@ -80,10 +80,10 @@ class QueueData(Resource):
 
 
         token = request.headers.get('Authorization')
-        user_id = jwt.decode(token, 'secret', algorithms="HS256")['id']
+        responder_id = jwt.decode(token, 'secret', algorithms="HS256")['id']
 
         # handle the rest on a different thread
-        thread = Thread(target=handle_data, args=[form_id, user_id, response_data])
+        thread = Thread(target=handle_data, args=[form_id, responder_id, response_data])
         
         thread.start()
 
